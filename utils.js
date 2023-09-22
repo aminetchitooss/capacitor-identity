@@ -22,7 +22,7 @@ const Utils = {
    * @private
    * @return {Boolean} true if file found
    */
-  findFile: async function (startDir, fileName, cb) {
+  findFile: async function (startDir, fileName, _, cb) {
     const files = await readdir(startDir);
 
     for (const file of files.filter(d => !excludedFolders.some(f => d.indexOf(f) > -1))) {
@@ -30,7 +30,7 @@ const Utils = {
       const isDirectory = (await stat(filePath)).isDirectory();
 
       if (isDirectory) {
-        const foundFile = await Utils.findFile(filePath, fileName, cb);
+        const foundFile = await Utils.findFile(filePath, fileName, _, cb);
         if (foundFile) return foundFile;
       } else if (file === fileName) {
         await cb(filePath);
@@ -39,6 +39,25 @@ const Utils = {
     }
 
     return false;
+  },
+
+  findAllFiles: async function (startDir, fileName, results, cb) {
+    if (!results) results = [];
+    const files = await readdir(startDir);
+
+    for (const file of files.filter(d => !excludedFolders.some(f => d.indexOf(f) > -1))) {
+      const filePath = join(startDir, file);
+      const isDirectory = (await stat(filePath)).isDirectory();
+
+      if (isDirectory) {
+        await Utils.findAllFiles(filePath, fileName, results, cb);
+      } else if (file === fileName) {
+        await cb(filePath);
+        results.push(filePath);
+      }
+    }
+
+    return results;
   },
 
   replaceDataFile: async function (filePath, newData, oldData) {
