@@ -60,9 +60,10 @@ const Utils = {
     return results;
   },
 
-  replaceDataFile: async function (filePath, newData, oldData) {
+  replaceDataFile: async function (filePath, newData, oldData, skipWarning = false) {
     try {
       if (oldData == newData) {
+        if (skipWarning) return;
         warningList.forEach(element => {
           if (filePath.indexOf(element) > -1)
             return console.log(
@@ -81,7 +82,7 @@ const Utils = {
   handleChangingFileWithPattern: async function (filePath, bundleId, appName, functionName) {
     const fileData = await readFile(filePath, 'utf8');
     const updatedContent = appName ? functionName(fileData, bundleId, appName) : functionName(fileData, bundleId);
-    await Utils.replaceDataFile(filePath, updatedContent, fileData);
+    await Utils.replaceDataFile(filePath, updatedContent, fileData, !bundleId);
   }
 };
 

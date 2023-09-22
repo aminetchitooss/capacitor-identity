@@ -23,7 +23,7 @@ async function start() {
     npx capacitor-rename ${chalk.bgCyan('--bundleId')} com.test.app ${chalk.bgCyan('--appName')} myApp
     `);
 
-    if (!Utils.isValidBundleIdentifier(bundleId))
+    if (!!bundleId && !Utils.isValidBundleIdentifier(bundleId))
       throw Error('Inavlid Bundle Identifier, try something like this "com.example.app" ');
 
     await updateBundleIdForIOS(bundleId, appName);
