@@ -7,14 +7,22 @@ import Utils from './utils.js';
 import IosHelper from './ios.helper.js';
 import AndroidHelper from './android.helper.js';
 
-const allowedArgs = ['-n', '--name'];
+const allowedArgs = ['--bundleId', '--appName'];
 
 async function start() {
   const spinner = createSpinner('Versioning your apps and cool stuff..').start();
 
   try {
-    const [, , bundleId, appName] = process.argv;
-    console.log('%cindex.js line:22 process.argv', 'color: #007acc;', process.argv);
+    let { bundleId, appName } = parseCommandLineArgs();
+
+    if (!appName && !bundleId)
+      throw Error(`
+    Empty arguments , you have to add at least one argument
+    Example:
+
+    npx capacitor-rename ${chalk.bgCyan('--bundleId')} com.test.app ${chalk.bgCyan('--appName')} myApp
+    `);
+
     if (!Utils.isValidBundleIdentifier(bundleId))
       throw Error('Inavlid Bundle Identifier, try something like this "com.example.app" ');
 
@@ -40,6 +48,49 @@ function endProcess(version) {
     );
     process.exit(0);
   });
+}
+
+function parseCommandLineArgss() {
+  const args = process.argv.slice(2);
+  const argsDict = {};
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+
+    if (arg.startsWith('--')) {
+      const [key, value] = arg.includes('=') ? arg.split('=') : [arg, args[i + 1]];
+
+      if (key.startsWith('--')) {
+        const argKey = key.slice(2);
+        argsDict[argKey] = value || ''; // Use an empty string if no value is provided
+      }
+    }
+  }
+
+  return argsDict;
+}
+function parseCommandLineArgs() {
+  const args = process.argv.slice(2).join('=').split('=').join(' ').split(' ');
+  const argsDict = {
+    bundleId: '',
+    appName: ''
+  };
+
+  let currentKey;
+
+  for (const arg of args) {
+    if (arg.startsWith('--')) {
+      // If the argument starts with '--', it's a key
+      currentKey = arg.slice(2);
+      argsDict[currentKey] = null; // Initialize with null value
+    } else if (currentKey !== null) {
+      // If we have a current key, set its value
+      argsDict[currentKey] = arg;
+      currentKey = null; // Reset the current key
+    }
+  }
+
+  return argsDict;
 }
 
 /**********************************************iOS******************************************************* */
