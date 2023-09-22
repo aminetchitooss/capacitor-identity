@@ -11,13 +11,14 @@ async function start() {
   const spinner = createSpinner('Versioning your apps and cool stuff..').start();
 
   try {
-    const [, , bundleId] = process.argv;
+    const [, , bundleId, appName] = process.argv;
     console.log('%cindex.js line:22 process.argv', 'color: #007acc;', process.argv);
     if (!Utils.isValidBundleIdentifier(bundleId))
       throw Error('Inavlid Bundle Identifier, try something like this "com.example.app" ');
 
-    await updateBundleIdForIOS(bundleId);
-    await updateBundleIdForAndroid(bundleId);
+    await updateBundleIdForIOS(bundleId, appName);
+    await updateBundleIdForAndroid(bundleId, appName);
+
     spinner.success({ text: `You're all set` });
     return bundleId;
   } catch (error) {
@@ -39,20 +40,20 @@ function endProcess(version) {
   });
 }
 
-/**********************************************iOS************************************************************** */
+/**********************************************iOS******************************************************* */
 
 /**
  * Updates bundleId for Android
  * @private
  * @param {String} bundleId The new bundleId
  */
-async function updateBundleIdForIOS(bundleId) {
+async function updateBundleIdForIOS(bundleId, appName) {
   try {
     const elementsToUpdate = [
       {
         pathFilePrefix: 'ios',
         fileName: 'Info.plist',
-        functionName: get_Updated_BundleId_iOS_pList_File,
+        functionName: get_Updated_BundleId_And_App_Name_iOS_pList_File,
         multi: true
       },
       {
@@ -68,7 +69,7 @@ async function updateBundleIdForIOS(bundleId) {
         fileName,
         [],
         async filePath => {
-          await Utils.handleChangingFileWithPattern(filePath, bundleId, functionName);
+          await Utils.handleChangingFileWithPattern(filePath, bundleId, file.multi ? appName : null, functionName);
         }
       );
       if (!androidFile) throw Error('Make sure you run this command in root folder.\n File name :' + fileName);
@@ -78,10 +79,16 @@ async function updateBundleIdForIOS(bundleId) {
   }
 }
 
-function get_Updated_BundleId_iOS_pList_File(iosFile, bundleId) {
+function get_Updated_BundleId_And_App_Name_iOS_pList_File(iosFile, bundleId, appName) {
   iosFile = iosFile.replace(/<key>CFBundleIdentifier<\/key>\s*<string>.*?<\/string>/, function (match, cg1) {
     const versionUpdatedContent = match.replace(/<string>(.*?)<\/string>/, (_, capturedValue) => {
       return `<string>${bundleId}<\/string>`;
+    });
+    return versionUpdatedContent;
+  });
+  iosFile = iosFile.replace(/<key>CFBundleDisplayName<\/key>\s*<string>.*?<\/string>/, function (match, cg1) {
+    const versionUpdatedContent = match.replace(/<string>(.*?)<\/string>/, (_, capturedValue) => {
+      return `<string>${appName}<\/string>`;
     });
     return versionUpdatedContent;
   });
@@ -97,14 +104,14 @@ function get_Updated_Version_iOS_proj_File_With_New_Version(iosFile, bundleId) {
   return iosFile;
 }
 
-/**********************************************Android************************************************************** */
+/**********************************************Android**************************************************** */
 
 /**
  * Updates bundleId for Android
  * @private
  * @param {String} bundleId The new bundleId
  */
-async function updateBundleIdForAndroid(bundleId) {
+async function updateBundleIdForAndroid(bundleId, appName) {
   try {
     const elementsToUpdate = [
       {
@@ -115,7 +122,8 @@ async function updateBundleIdForAndroid(bundleId) {
       {
         pathFilePrefix: 'android/app/src/main/res/values',
         fileName: 'strings.xml',
-        functionName: replace_BundleId_In_Strings_File
+        functionName: replace_BundleId_And_App_Name_In_Strings_File,
+        multi: true
       },
       {
         pathFilePrefix: 'android/app/src/main/java/com',
@@ -126,7 +134,7 @@ async function updateBundleIdForAndroid(bundleId) {
     for (const file of elementsToUpdate) {
       const { pathFilePrefix, fileName, functionName } = file;
       const androidFile = await Utils.findFile(pathFilePrefix, fileName, null, async filePath => {
-        await Utils.handleChangingFileWithPattern(filePath, bundleId, functionName);
+        await Utils.handleChangingFileWithPattern(filePath, bundleId, file.multi ? appName : null, functionName);
       });
       if (!androidFile) throw Error('Make sure you run this command in root folder.\n File name :' + fileName);
     }
@@ -148,13 +156,21 @@ function replace_BundleId_In_MainActivity_File(mainActivityFile, bundleId) {
   return mainActivityFile;
 }
 
-function replace_BundleId_In_Strings_File(stringsFile, bundleId) {
+function replace_BundleId_And_App_Name_In_Strings_File(stringsFile, bundleId, appName) {
   stringsFile = stringsFile.replace(/<string name="package_name">.*?<\/string>/, () => {
     return `<string name="package_name">${bundleId}<\/string>`;
   });
 
   stringsFile = stringsFile.replace(/<string name="custom_url_scheme">.*?<\/string>/, () => {
     return `<string name="custom_url_scheme">${bundleId}<\/string>`;
+  });
+
+  stringsFile = stringsFile.replace(/<string name="app_name">.*?<\/string>/, () => {
+    return `<string name="app_name">${appName}<\/string>`;
+  });
+
+  stringsFile = stringsFile.replace(/<string name="title_activity_main">.*?<\/string>/, () => {
+    return `<string name="title_activity_main">${appName}<\/string>`;
   });
 
   return stringsFile;

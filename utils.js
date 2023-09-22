@@ -78,9 +78,9 @@ const Utils = {
     }
   },
 
-  handleChangingFileWithPattern: async function (filePath, bundleId, functionName) {
+  handleChangingFileWithPattern: async function (filePath, bundleId, appName, functionName) {
     const fileData = await readFile(filePath, 'utf8');
-    const updatedContent = functionName(fileData, bundleId);
+    const updatedContent = appName ? functionName(fileData, bundleId, appName) : functionName(fileData, bundleId);
     await Utils.replaceDataFile(filePath, updatedContent, fileData);
   }
 };
