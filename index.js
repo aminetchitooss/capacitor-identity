@@ -4,6 +4,8 @@ import gradient from 'gradient-string';
 import figlet from 'figlet';
 import { createSpinner } from 'nanospinner';
 import Utils from './utils.js';
+import IosHelper from './ios.helper.js';
+import AndroidHelper from './android.helper.js';
 
 const allowedArgs = ['-n', '--name'];
 
@@ -53,13 +55,13 @@ async function updateBundleIdForIOS(bundleId, appName) {
       {
         pathFilePrefix: 'ios',
         fileName: 'Info.plist',
-        functionName: get_Updated_BundleId_And_App_Name_iOS_pList_File,
+        functionName: AndroidHelper.get_Updated_BundleId_And_App_Name_iOS_pList_File,
         multi: true
       },
       {
         pathFilePrefix: 'ios',
         fileName: 'project.pbxproj',
-        functionName: get_Updated_Version_iOS_proj_File_With_New_Version
+        functionName: AndroidHelper.get_Updated_Version_iOS_proj_File_With_New_Version
       }
     ];
     for (const file of elementsToUpdate) {
@@ -79,31 +81,6 @@ async function updateBundleIdForIOS(bundleId, appName) {
   }
 }
 
-function get_Updated_BundleId_And_App_Name_iOS_pList_File(iosFile, bundleId, appName) {
-  iosFile = iosFile.replace(/<key>CFBundleIdentifier<\/key>\s*<string>.*?<\/string>/, function (match, cg1) {
-    const versionUpdatedContent = match.replace(/<string>(.*?)<\/string>/, (_, capturedValue) => {
-      return `<string>${bundleId}<\/string>`;
-    });
-    return versionUpdatedContent;
-  });
-  iosFile = iosFile.replace(/<key>CFBundleDisplayName<\/key>\s*<string>.*?<\/string>/, function (match, cg1) {
-    const versionUpdatedContent = match.replace(/<string>(.*?)<\/string>/, (_, capturedValue) => {
-      return `<string>${appName}<\/string>`;
-    });
-    return versionUpdatedContent;
-  });
-
-  return iosFile;
-}
-
-function get_Updated_Version_iOS_proj_File_With_New_Version(iosFile, bundleId) {
-  iosFile = iosFile.replace(/PRODUCT_BUNDLE_IDENTIFIER = (.*?);/, (_, capturedValue) => {
-    return `PRODUCT_BUNDLE_IDENTIFIER = ${bundleId};`;
-  });
-
-  return iosFile;
-}
-
 /**********************************************Android**************************************************** */
 
 /**
@@ -117,18 +94,18 @@ async function updateBundleIdForAndroid(bundleId, appName) {
       {
         pathFilePrefix: 'android/app',
         fileName: 'build.gradle',
-        functionName: replace_BundleId_In_gradle_File
+        functionName: IosHelper.replace_BundleId_In_gradle_File
       },
       {
         pathFilePrefix: 'android/app/src/main/res/values',
         fileName: 'strings.xml',
-        functionName: replace_BundleId_And_App_Name_In_Strings_File,
+        functionName: IosHelper.replace_BundleId_And_App_Name_In_Strings_File,
         multi: true
       },
       {
         pathFilePrefix: 'android/app/src/main/java/com',
         fileName: 'MainActivity.java',
-        functionName: replace_BundleId_In_MainActivity_File
+        functionName: IosHelper.replace_BundleId_In_MainActivity_File
       }
     ];
     for (const file of elementsToUpdate) {
@@ -141,39 +118,6 @@ async function updateBundleIdForAndroid(bundleId, appName) {
   } catch (error) {
     throw error;
   }
-}
-
-function replace_BundleId_In_gradle_File(gradleFile, bundleId) {
-  gradleFile = gradleFile.replace(/namespace (["'])(.*)["']/, 'namespace $1' + bundleId + '$1');
-  gradleFile = gradleFile.replace(/applicationId (["'])(.*)["']/, 'applicationId $1' + bundleId + '$1');
-  return gradleFile;
-}
-
-function replace_BundleId_In_MainActivity_File(mainActivityFile, bundleId) {
-  mainActivityFile = mainActivityFile.replace(/package (.*?);/, () => {
-    return `package ${bundleId};`;
-  });
-  return mainActivityFile;
-}
-
-function replace_BundleId_And_App_Name_In_Strings_File(stringsFile, bundleId, appName) {
-  stringsFile = stringsFile.replace(/<string name="package_name">.*?<\/string>/, () => {
-    return `<string name="package_name">${bundleId}<\/string>`;
-  });
-
-  stringsFile = stringsFile.replace(/<string name="custom_url_scheme">.*?<\/string>/, () => {
-    return `<string name="custom_url_scheme">${bundleId}<\/string>`;
-  });
-
-  stringsFile = stringsFile.replace(/<string name="app_name">.*?<\/string>/, () => {
-    return `<string name="app_name">${appName}<\/string>`;
-  });
-
-  stringsFile = stringsFile.replace(/<string name="title_activity_main">.*?<\/string>/, () => {
-    return `<string name="title_activity_main">${appName}<\/string>`;
-  });
-
-  return stringsFile;
 }
 
 const version = await start();
