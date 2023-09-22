@@ -1,4 +1,4 @@
-import { writeFile, stat, readdir } from 'fs/promises';
+import { writeFile, stat, readdir, readFile } from 'fs/promises';
 import { join } from 'path';
 import chalk from 'chalk';
 
@@ -12,9 +12,6 @@ const warningList = [
 ];
 const excludedFolders = ['Pod', 'capacitor-cordova-ios-plugins', 'DerivedData'];
 
-// utils.js
-
-// Define an object to hold utility methods
 const Utils = {
   isValidBundleIdentifier: function (bundleIdentifier) {
     const iOSBundleRegex = /^(?=.{1,255}$)[a-z\d]+(-[a-z\d]+)*(\.[a-z\d]+(-[a-z\d]+)*)+$/i;
@@ -60,6 +57,12 @@ const Utils = {
     } catch (error) {
       throw error;
     }
+  },
+
+  handleChangingFileWithPattern: async function (filePath, bundleId, functionName) {
+    const fileData = await readFile(filePath, 'utf8');
+    const updatedContent = functionName(fileData, bundleId);
+    await Utils.replaceDataFile(filePath, updatedContent, fileData);
   }
 };
 

@@ -51,9 +51,7 @@ async function updateBundleIdForAndroid(bundleId) {
     for (const file of elementsToUpdate) {
       const { pathFilePrefix, fileName, functionName } = file;
       const androidFile = await Utils.findFile(pathFilePrefix, fileName, async filePath => {
-        const fileData = await readFile(filePath, 'utf8');
-        const updatedContent = functionName(fileData, bundleId);
-        await Utils.replaceDataFile(filePath, updatedContent, fileData);
+        await Utils.handleChangingFileWithPattern(filePath, bundleId, functionName);
       });
       if (!androidFile) throw Error('Make sure you run this command in root folder.\n File name :' + fileName);
     }
