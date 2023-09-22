@@ -6,15 +6,15 @@ import { createSpinner } from 'nanospinner';
 import Utils from './utils.js';
 import IosHelper from './ios.helper.js';
 import AndroidHelper from './android.helper.js';
-
+let IS_VERBOSE = false;
 const allowedArgs = ['--bundleId', '--appName'];
 
 async function start() {
   const spinner = createSpinner('Versioning your apps and cool stuff..').start();
 
   try {
-    let { bundleId, appName } = parseCommandLineArgs();
-
+    let { bundleId, appName, verbose } = parseCommandLineArgs();
+    IS_VERBOSE = verbose;
     if (!appName && !bundleId)
       throw Error(`
     Empty arguments , you have to add at least one argument
@@ -30,7 +30,7 @@ async function start() {
     await updateBundleIdForAndroid(bundleId, appName);
 
     spinner.success({ text: `You're all set` });
-    return bundleId;
+    return bundleId || appName;
   } catch (error) {
     spinner.error({ text: `💀💀💀 Game over, Something clearly went wrong!` });
     console.log(error);
@@ -50,30 +50,13 @@ function endProcess(version) {
   });
 }
 
-function parseCommandLineArgss() {
-  const args = process.argv.slice(2);
-  const argsDict = {};
-
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-
-    if (arg.startsWith('--')) {
-      const [key, value] = arg.includes('=') ? arg.split('=') : [arg, args[i + 1]];
-
-      if (key.startsWith('--')) {
-        const argKey = key.slice(2);
-        argsDict[argKey] = value || ''; // Use an empty string if no value is provided
-      }
-    }
-  }
-
-  return argsDict;
-}
 function parseCommandLineArgs() {
   const args = process.argv.slice(2).join('=').split('=').join(' ').split(' ');
+  const verbose = args.some(a => a == '--verbose');
   const argsDict = {
     bundleId: '',
-    appName: ''
+    appName: '',
+    verbose: false
   };
 
   let currentKey;
@@ -89,7 +72,7 @@ function parseCommandLineArgs() {
       currentKey = null; // Reset the current key
     }
   }
-
+  argsDict.verbose = argsDict.verbose?.toString() != 'false' ? verbose : false;
   return argsDict;
 }
 
@@ -122,7 +105,13 @@ async function updateBundleIdForIOS(bundleId, appName) {
         fileName,
         [],
         async filePath => {
-          await Utils.handleChangingFileWithPattern(filePath, bundleId, file.multi ? appName : null, functionName);
+          await Utils.handleChangingFileWithPattern(
+            filePath,
+            bundleId,
+            file.multi ? appName : null,
+            functionName,
+            IS_VERBOSE
+          );
         }
       );
       if (!androidFile) throw Error('Make sure you run this command in root folder.\n File name :' + fileName);
@@ -162,7 +151,13 @@ async function updateBundleIdForAndroid(bundleId, appName) {
     for (const file of elementsToUpdate) {
       const { pathFilePrefix, fileName, functionName } = file;
       const androidFile = await Utils.findFile(pathFilePrefix, fileName, null, async filePath => {
-        await Utils.handleChangingFileWithPattern(filePath, bundleId, file.multi ? appName : null, functionName);
+        await Utils.handleChangingFileWithPattern(
+          filePath,
+          bundleId,
+          file.multi ? appName : null,
+          functionName,
+          IS_VERBOSE
+        );
       });
       if (!androidFile) throw Error('Make sure you run this command in root folder.\n File name :' + fileName);
     }
@@ -171,5 +166,5 @@ async function updateBundleIdForAndroid(bundleId, appName) {
   }
 }
 
-const version = await start();
-endProcess(version);
+const result = await start();
+endProcess(result);
