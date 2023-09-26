@@ -4,16 +4,16 @@ import gradient from 'gradient-string';
 import figlet from 'figlet';
 import { createSpinner } from 'nanospinner';
 import Utils from './utils.js';
-import IosHelper from './ios.helper.js';
 import AndroidHelper from './android.helper.js';
+import IosHelper from './ios.helper.js';
 let IS_VERBOSE = false;
 const allowedArgs = ['--bundleId', '--appName'];
 
 async function start() {
-  const spinner = createSpinner('Versioning your apps and cool stuff..').start();
+  const spinner = createSpinner('Updating name and id of your apps and cool stuff..').start();
 
   try {
-    let { bundleId, appName, verbose } = parseCommandLineArgs();
+    let { bundleId, appName, verbose } = Utils.parseCommandLineArgs();
     IS_VERBOSE = verbose;
     if (!appName && !bundleId)
       throw Error(`
@@ -38,42 +38,13 @@ async function start() {
   }
 }
 
-function endProcess(version) {
-  figlet(`${version}`, (err, data) => {
+function endProcess(data) {
+  figlet(`${data}`, (err, data) => {
     console.log(gradient.atlas.multiline(data) + '\n');
 
-    console.log(
-      chalk.green(`Coding ain't about knowledge; it's about making the command line look cool
-      `)
-    );
+    console.log(chalk.green(`Coding ain't about knowledge; it's about tchitos making the command line look cool`));
     process.exit(0);
   });
-}
-
-function parseCommandLineArgs() {
-  const args = process.argv.slice(2).join('=').split('=').join(' ').split(' ');
-  const verbose = args.some(a => a == '--verbose');
-  const argsDict = {
-    bundleId: '',
-    appName: '',
-    verbose: false
-  };
-
-  let currentKey;
-
-  for (const arg of args) {
-    if (arg.startsWith('--')) {
-      // If the argument starts with '--', it's a key
-      currentKey = arg.slice(2);
-      argsDict[currentKey] = null; // Initialize with null value
-    } else if (currentKey !== null) {
-      // If we have a current key, set its value
-      argsDict[currentKey] = arg;
-      currentKey = null; // Reset the current key
-    }
-  }
-  argsDict.verbose = argsDict.verbose?.toString() != 'false' ? verbose : false;
-  return argsDict;
 }
 
 /**********************************************iOS******************************************************* */
@@ -89,13 +60,13 @@ async function updateBundleIdForIOS(bundleId, appName) {
       {
         pathFilePrefix: 'ios',
         fileName: 'Info.plist',
-        functionName: AndroidHelper.get_Updated_BundleId_And_App_Name_iOS_pList_File,
+        functionName: IosHelper.replace_BundleId_And_App_Name,
         multi: true
       },
       {
         pathFilePrefix: 'ios',
         fileName: 'project.pbxproj',
-        functionName: AndroidHelper.get_Updated_Version_iOS_proj_File_With_New_Version
+        functionName: IosHelper.replace_Bundle_identifier
       }
     ];
     for (const file of elementsToUpdate) {
@@ -134,18 +105,18 @@ async function updateBundleIdForAndroid(bundleId, appName) {
       {
         pathFilePrefix: 'android/app',
         fileName: 'build.gradle',
-        functionName: IosHelper.replace_BundleId_In_gradle_File
+        functionName: AndroidHelper.replace_BundleId_In_gradle_File
       },
       {
         pathFilePrefix: 'android/app/src/main/res/values',
         fileName: 'strings.xml',
-        functionName: IosHelper.replace_BundleId_And_App_Name_In_Strings_File,
+        functionName: AndroidHelper.replace_BundleId_And_App_Name,
         multi: true
       },
       {
         pathFilePrefix: 'android/app/src/main/java/com',
         fileName: 'MainActivity.java',
-        functionName: IosHelper.replace_BundleId_In_MainActivity_File
+        functionName: AndroidHelper.replace_BundleId_In_MainActivity_File
       }
     ];
     for (const file of elementsToUpdate) {

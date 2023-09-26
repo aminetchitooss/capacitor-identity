@@ -1,7 +1,7 @@
 {
   "name": "capacitor-identity",
-  "version": "1.0.0",
-  "description": "Version your capacitor project from your package.json",
+  "version": "1.0.2",
+  "description": "Update the name and id bundler of your capacitor app",
   "main": "index.js",
   "type": "module",
   "bin": "./index.js",
@@ -10,10 +10,24 @@
   },
   "keywords": [
     "capacitor",
-    "version",
-    "capacitor version",
-    "capacitor mobile versioning",
-    "capacitor versioning"
+    "ios",
+    "android",
+    "rename",
+    "update",
+    "channge",
+    "rename CFBundleIdentifier",
+    "rename CFBundleDisplayName",
+    "rename PRODUCT_BUNDLE_IDENTIFIER",
+    "rename bundle id",
+    "rename applicationId",
+    "rename namespace",
+    "rename package_name",
+    "rename custom_url_scheme",
+    "rename app_name",
+    "rename title_activity_main",
+    "update mobile rename",
+    "capacitor bundle id changer",
+    "capacitor mobile applicationId changer"
   ],
   "author": {
     "name": "tchitos"

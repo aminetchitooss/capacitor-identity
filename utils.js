@@ -83,6 +83,32 @@ const Utils = {
     const fileData = await readFile(filePath, 'utf8');
     const updatedContent = appName ? functionName(fileData, bundleId, appName) : functionName(fileData, bundleId);
     await Utils.replaceDataFile(filePath, updatedContent, fileData, IS_VERBOSE);
+  },
+
+  parseCommandLineArgs: function () {
+    const args = process.argv.slice(2).join('=').split('=').join(' ').split(' ');
+    const verbose = args.some(a => a == '--verbose');
+    const argsDict = {
+      bundleId: '',
+      appName: '',
+      verbose: false
+    };
+
+    let currentKey;
+
+    for (const arg of args) {
+      if (arg.startsWith('--')) {
+        // If the argument starts with '--', it's a key
+        currentKey = arg.slice(2);
+        argsDict[currentKey] = null; // Initialize with null value
+      } else if (currentKey !== null) {
+        // If we have a current key, set its value
+        argsDict[currentKey] = arg;
+        currentKey = null; // Reset the current key
+      }
+    }
+    argsDict.verbose = argsDict.verbose?.toString() != 'false' ? verbose : false;
+    return argsDict;
   }
 };
 
