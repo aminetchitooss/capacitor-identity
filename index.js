@@ -112,11 +112,6 @@ async function updateBundleIdForAndroid(bundleId, appName) {
         fileName: 'strings.xml',
         functionName: AndroidHelper.replace_BundleId_And_App_Name,
         multi: true
-      },
-      {
-        pathFilePrefix: 'android/app/src/main/java/com',
-        fileName: 'MainActivity.java',
-        functionName: AndroidHelper.replace_BundleId_In_MainActivity_File
       }
     ];
     for (const file of elementsToUpdate) {

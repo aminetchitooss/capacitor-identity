@@ -2,14 +2,7 @@ import { writeFile, stat, readdir, readFile } from 'fs/promises';
 import { join } from 'path';
 import chalk from 'chalk';
 
-const warningList = [
-  'capacitor.config.ts',
-  'build.gradle',
-  'MainActivity.java',
-  'strings.xml',
-  'Info.plist',
-  'project.pbxproj'
-];
+const warningList = ['capacitor.config.ts', 'build.gradle', 'strings.xml', 'Info.plist', 'project.pbxproj'];
 const excludedFolders = ['Pod', 'capacitor-cordova-ios-plugins', 'DerivedData'];
 
 const Utils = {

@@ -1,6 +1,6 @@
 {
   "name": "capacitor-identity",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Update the name and id bundler of your capacitor app",
   "main": "index.js",
   "type": "module",
