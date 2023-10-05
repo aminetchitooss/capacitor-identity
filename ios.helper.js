@@ -20,7 +20,7 @@ const IosHelper = {
   replace_Bundle_identifier: function (iosFile, bundleId) {
     if (!bundleId) return iosFile;
 
-    iosFile = iosFile.replace(/PRODUCT_BUNDLE_IDENTIFIER = (.*?);/, () => {
+    iosFile = iosFile.replace(/PRODUCT_BUNDLE_IDENTIFIER = (.*?);/g, () => {
       return `PRODUCT_BUNDLE_IDENTIFIER = ${bundleId};`;
     });
 
